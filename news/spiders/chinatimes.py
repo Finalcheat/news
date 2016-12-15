@@ -18,7 +18,7 @@ class ChinatimesSpider(scrapy.Spider):
         r = re.findall(u'(\d+)年(\d+)月(\d+)日 (\d+):(\d+)', pubtime)
         if not r:
             raise Exception(u'解析时间失败')
-        htmlcontent = response.xpath('//article').extract()[0]
+        htmlcontent = response.xpath('//div[contains(@class, "page_container")]/article/article').extract()[0]
         keywords = response.xpath('//div[@class="a_k"]/a/text()').extract()
         source = u'中時電子報'
         item = NewsItem(title=title, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
