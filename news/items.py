@@ -18,3 +18,4 @@ class NewsItem(scrapy.Item):
     keywords = scrapy.Field()
     source = scrapy.Field()
     href = scrapy.Field()
+    images = scrapy.Field()
