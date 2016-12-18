@@ -6,13 +6,10 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import re
+import psycopg2
 from bs4 import BeautifulSoup
 from scrapy.exceptions import DropItem
-
-
-class NewsPipeline(object):
-    def process_item(self, item, spider):
-        return item
+from news.private_settings import POSTGRESQL_CONFIG
 
 
 class NewsHtmlcontentPipeline(object):
@@ -45,7 +42,8 @@ class NewsHtmlcontentPipeline(object):
                     raise DropItem(u"存在iframe标签暂时未解析抛弃!")
                 elif name == "img":
                     src, alt = attrs["src"], attrs.get("alt", "")
-                    images.append({"src": src, "alt": alt})
+                    # images.append({"src": src, "alt": alt})
+                    images.append(src)
                     child.attrs = {"src": src, "alt": alt}
                 else:
                     child.attrs = {}
@@ -56,4 +54,22 @@ class NewsHtmlcontentPipeline(object):
         # print new_htmlcontent
         item["htmlcontent"] = new_htmlcontent
         item["images"] = images
+        return item
+
+
+class DatabasePipelines(object):
+    """
+    存入数据库
+    """
+
+    conn = psycopg2.connect(host=POSTGRESQL_CONFIG["host"], port=POSTGRESQL_CONFIG["port"], user=POSTGRESQL_CONFIG["user"],
+                            password=POSTGRESQL_CONFIG["password"], database=POSTGRESQL_CONFIG["database"])
+
+    def process_item(self, item, spider):
+        with self.conn:
+            with self.conn.cursor() as cur:
+                sql = "INSERT INTO news_source (title, pubtime, htmlcontent, keywords, source, images, href) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+                args = (item["title"], item["pubtime"], item["htmlcontent"], item["keywords"], item["source"], item["images"], item["href"])
+                cur.execute(sql, args)
+
         return item
