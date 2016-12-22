@@ -6,10 +6,9 @@
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
 import re
-import psycopg2
 from bs4 import BeautifulSoup
 from scrapy.exceptions import DropItem
-from news.private_settings import POSTGRESQL_CONFIG
+from news.database import Database
 
 
 class NewsHtmlcontentPipeline(object):
@@ -62,14 +61,6 @@ class DatabasePipelines(object):
     存入数据库
     """
 
-    conn = psycopg2.connect(host=POSTGRESQL_CONFIG["host"], port=POSTGRESQL_CONFIG["port"], user=POSTGRESQL_CONFIG["user"],
-                            password=POSTGRESQL_CONFIG["password"], database=POSTGRESQL_CONFIG["database"])
-
     def process_item(self, item, spider):
-        with self.conn:
-            with self.conn.cursor() as cur:
-                sql = "INSERT INTO news_source (title, pubtime, htmlcontent, keywords, source, images, href) VALUES (%s, %s, %s, %s, %s, %s, %s)"
-                args = (item["title"], item["pubtime"], item["htmlcontent"], item["keywords"], item["source"], item["images"], item["href"])
-                cur.execute(sql, args)
-
+        Database.insert(item)
         return item

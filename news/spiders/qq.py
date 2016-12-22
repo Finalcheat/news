@@ -2,9 +2,8 @@
 import scrapy
 import re
 import datetime
-import psycopg2
 from news.items import NewsItem
-from news.private_settings import POSTGRESQL_CONFIG
+from news.database import Database
 
 
 class QqSpider(scrapy.Spider):
@@ -33,24 +32,11 @@ class QqListSpider(scrapy.Spider):
         "http://news.qq.com/",
     )
 
-    conn = psycopg2.connect(host=POSTGRESQL_CONFIG["host"], port=POSTGRESQL_CONFIG["port"], user=POSTGRESQL_CONFIG["user"],
-                            password=POSTGRESQL_CONFIG["password"], database=POSTGRESQL_CONFIG["database"])
-
-    def find_dup(self, href):
-        with self.conn:
-            with self.conn.cursor() as cur:
-                sql = "SELECT href FROM news_source WHERE href = %s"
-                cur.execute(sql, (href,))
-                rows = cur.fetchall()
-                if rows:
-                    return True
-        return False
-
     def parse(self, response):
         hrefs = response.xpath('//a/@href').extract()
         qq = QqSpider()
         r = re.compile("^http://news\.qq\.com/a/\d+/\d+\.htm$")
         for href in hrefs:
-            if r.match(href) and not self.find_dup(href):
+            if r.match(href) and not Database.find_dup(href):
                 # print href
                 yield scrapy.Request(href, callback=qq.parse)
