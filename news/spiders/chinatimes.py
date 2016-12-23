@@ -10,9 +10,9 @@ class ChinatimesSpider(scrapy.Spider):
     USE_PROXY = True
     name = "chinatimes"
     allowed_domains = ["chinatimes.com"]
-    start_urls = (
-        'http://www.chinatimes.com/realtimenews/20161215002455-260404',
-    )
+    # start_urls = (
+    #     'http://www.chinatimes.com/realtimenews/20161215002455-260404',
+    # )
 
     def parse(self, response):
         href = response.url

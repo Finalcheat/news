@@ -10,9 +10,9 @@ class UdnStyleSpider(scrapy.Spider):
     USE_PROXY = True
     name = "udn_style"
     allowed_domains = ["style.udn.com"]
-    start_urls = (
-        'http://style.udn.com/style/story/8067/1974324',
-    )
+    # start_urls = (
+    #     'http://style.udn.com/style/story/8067/1974324',
+    # )
 
     def parse(self, response):
         href = response.url

@@ -9,9 +9,9 @@ from news.database import Database
 class QqSpider(scrapy.Spider):
     name = "qq"
     allowed_domains = ["qq.com"]
-    start_urls = (
-        'http://news.qq.com/a/20161218/009311.htm',
-    )
+    # start_urls = (
+    #     'http://news.qq.com/a/20161218/009311.htm',
+    # )
 
     def parse(self, response):
         href = response.url

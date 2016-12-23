@@ -34,20 +34,24 @@ class NewsHtmlcontentPipeline(object):
         # 同时找出所有的img
         images = []
         for child in soup.descendants:
-            try:
-                attrs = child.attrs
-                name = child.name
-                if name == "iframe":
-                    raise DropItem(u"存在iframe标签暂时未解析抛弃!")
-                elif name == "img":
-                    src, alt = attrs["src"], attrs.get("alt", "")
-                    # images.append({"src": src, "alt": alt})
-                    images.append(src)
-                    child.attrs = {"src": src, "alt": alt}
+            attrs = getattr(child, "attrs", None)
+            if attrs is None:
+                continue
+            name = child.name
+            if name == "iframe":
+                raise DropItem(u"存在iframe标签暂时未解析抛弃!")
+            elif name == "img":
+                img_callback = getattr(spider, "img_callback", None)
+                if img_callback is not None:
+                    img_info = img_callback(self, attrs)
+                    src, alt = img_info["src"], img_info["alt"]
                 else:
-                    child.attrs = {}
-            except:
-                pass
+                    src, alt = attrs["src"], attrs.get("alt", "")
+                # images.append({"src": src, "alt": alt})
+                images.append(src)
+                child.attrs = {"src": src, "alt": alt}
+            else:
+                child.attrs = {}
         new_htmlcontent = unicode(soup.body.contents[0])
         new_htmlcontent = self.remove_html_comments(new_htmlcontent)
         # print new_htmlcontent
