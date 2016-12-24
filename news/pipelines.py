@@ -61,6 +61,19 @@ class NewsHtmlcontentPipeline(object):
         return item
 
 
+class CheckPipelines(object):
+    """
+    检查是否为空
+    """
+
+    def process_item(self, item, spider):
+        if not item["title"]:
+            raise DropItem(u"标题解析失败")
+        if not item["htmlcontent"]:
+            raise DropItem(u"内容解析失败")
+        return item
+
+
 class DatabasePipelines(object):
     """
     存入数据库

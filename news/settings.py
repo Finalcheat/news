@@ -65,6 +65,7 @@ DOWNLOADER_MIDDLEWARES = {
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
    'news.pipelines.NewsHtmlcontentPipeline': 100,
+   'news.pipelines.CheckPipelines': 110,
    'news.pipelines.DatabasePipelines': 200,
 }
 
