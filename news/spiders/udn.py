@@ -56,7 +56,8 @@ class UdnSpider(scrapy.Spider):
     allowed_domains = ["udn.com"]
     # start_urls = (
     #     # "http://udn.com/news/story/9/2189655",
-    #     "http://udn.com/news/story/7316/2189647",
+    #     # "http://udn.com/news/story/7316/2189647",
+    #     "http://udn.com/news/story/1/2189830",
     # )
 
     def parse(self, response):
@@ -117,3 +118,65 @@ class UdnListSpider(scrapy.Spider):
                 href = "http://udn.com" + _href
                 if not Database.find_dup(href):
                     yield scrapy.Request(href, callback=udn.parse)
+
+
+
+class UdnHealthSpider(scrapy.Spider):
+    USE_PROXY = True
+    name = "udn_health"
+    allowed_domains = ["health.udn.com"]
+    # start_urls = (
+    #     "http://health.udn.com/health/story/5999/2188035",
+    # )
+
+    def parse(self, response):
+        href = response.url
+        title = response.xpath('//h1[@id="story_art_title"]/text()').extract()[0]
+        pubtime = response.xpath('//div[@class="story_bady_info"]/div[@class="story_bady_info_author"]/text()').extract()[0]
+        r = re.compile("(\d+)-(\d+)-(\d+) (\d+):(\d+)")
+        r = re.findall(r, pubtime)
+        if not r:
+            raise Exception(u"解析时间失败")
+        r = [ int(x) for x in r[0] ]
+        pubtime = datetime.datetime(year=r[0], month=r[1], day=r[2], hour=r[3], minute=r[4])
+        htmlcontent = response.xpath('//div[@id="story_body_content"]').extract()[0]
+
+        soup = BeautifulSoup(htmlcontent, "lxml")
+        [h.extract() for h in soup.find_all("h1", id="story_art_title")]
+        [d.extract() for d in soup.find_all("div", class_="story_bar")]
+        [d.extract() for d in soup.find_all("div", class_="story_bady_info")]
+        [d.extract() for d in soup.find_all("div", class_="area")]
+        [d.extract() for d in soup.find_all("dl", class_="tabsbox")]
+        htmlcontent = unicode(soup.body.contents[0])
+
+        keywords = response.xpath('//dl[@class="tabsbox"]/dt/a/text()').extract()
+        source = u"元氣網"
+        item = NewsItem(title=title, pubtime=pubtime, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
+        yield item
+
+
+class UdnHealthListSpider(scrapy.Spider):
+    USE_PROXY = True
+    name = "udn_health_list"
+    allowed_domains = ["health.udn.com"]
+    start_urls = (
+        "http://health.udn.com/health/cate/5681",         # 新闻话题
+        "http://health.udn.com/health/cate/5680",         # 健康百科
+        "http://health.udn.com/health/cate/5684",         # 运动养生
+        "http://health.udn.com/health/cate/5686",         # 性爱之间
+        "http://health.udn.com/health/cate/7391",         # 名人在线
+        "http://health.udn.com/health/cate/5683",         # 癌症防治
+        "http://health.udn.com/health/cate/5687",         # 亲子妇幼
+        "http://health.udn.com/health/cate/5685",         # 医美瘦身
+        "http://health.udn.com/health/cate/7732",         # 有健康
+    )
+
+    def parse(self, response):
+        hrefs = response.xpath('//a/@href').extract()
+        udn_health = UdnHealthSpider()
+        r = re.compile("^/health/story/\d+/\d+$")
+        for _href in hrefs:
+            if r.match(_href):
+                href = "http://health.udn.com" + _href
+                if not Database.find_dup(href):
+                    yield scrapy.Request(href, udn_health.parse)
