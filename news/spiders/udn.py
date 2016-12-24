@@ -132,6 +132,8 @@ class UdnHealthSpider(scrapy.Spider):
     def parse(self, response):
         href = response.url
         title = response.xpath('//h1[@id="story_art_title"]/text()').extract()[0]
+        r = re.compile("\t|\r|\n")
+        title = re.sub(r, "", title)
         pubtime = response.xpath('//div[@class="story_bady_info"]/div[@class="story_bady_info_author"]/text()').extract()[0]
         r = re.compile("(\d+)-(\d+)-(\d+) (\d+):(\d+)")
         r = re.findall(r, pubtime)
