@@ -24,9 +24,8 @@ class NewsHtmlcontentPipeline(object):
         return re.sub(r, "", html)
 
     def process_item(self, item, spider):
-        # print spider
         htmlcontent = item["htmlcontent"]
-        # print htmlcontent
+        href = item["href"]
         soup = BeautifulSoup(htmlcontent, "lxml")
         # 删除script标签
         [s.extract() for s in soup('script')]
@@ -47,6 +46,8 @@ class NewsHtmlcontentPipeline(object):
                     src, alt = img_info["src"], img_info["alt"]
                 else:
                     src, alt = attrs["src"], attrs.get("alt", "")
+                    if src and src.startswith("//"):
+                        src = "https:" + src if src.startswith("https") else "http:" + src
                 # images.append({"src": src, "alt": alt})
                 images.append(src)
                 child.attrs = {"src": src, "alt": alt}

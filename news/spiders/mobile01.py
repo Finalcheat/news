@@ -10,9 +10,10 @@ class Mobile01Spider(scrapy.Spider):
     USE_PROXY = True
     name = "mobile01"
     allowed_domains = ["mobile01.com"]
-    start_urls = (
-        'http://www.mobile01.com/newsdetail/20115/final-fantasy-xv-15-rpg-act-review-series',
-    )
+    # start_urls = (
+    #     # 'http://www.mobile01.com/newsdetail/20115/final-fantasy-xv-15-rpg-act-review-series',
+    #     'http://www.mobile01.com/newsdetail/20284/volvo-xc90-t8-excellence',
+    # )
 
     def parse(self, response):
         href = response.url
@@ -29,3 +30,22 @@ class Mobile01Spider(scrapy.Spider):
         source = u'mobile01'
         item = NewsItem(title=title, pubtime=pubtime, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
         yield item
+
+
+class Mobile01ListSpider(scrapy.Spider):
+    USE_PROXY = True
+    name = "mobile01_list"
+    allowed_domains = ["mobile01.com"]
+    start_urls = (
+        "http://www.mobile01.com/",
+    )
+
+    def parse(self, response):
+        hrefs = response.xpath('//a/@href').extract()
+        mobile01 = Mobile01Spider()
+        r = re.compile("^newsdetail/\d+/.*$")
+        for _href in hrefs:
+            if r.match(_href):
+                href = "http://www.mobile01.com/" + _href
+                if not Database.find_dup(href):
+                    yield scrapy.Request(href, callback=mobile01.parse)
