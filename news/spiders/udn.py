@@ -70,7 +70,7 @@ class UdnSpider(scrapy.Spider):
         pubtime = datetime.datetime(year=r[0], month=r[1], day=r[2], hour=r[3], minute=r[4])
         htmlcontent = response.xpath('//div[@id="story_body_content"]').extract()[0]
 
-        soup = BeautifulSoup(htmlcontent)
+        soup = BeautifulSoup(htmlcontent, "lxml")
         [h.extract() for h in soup.find_all("h1", id="story_art_title")]
         [d.extract() for d in soup.find_all("div", id="story_bar")]
         [d.extract() for d in soup.find_all("div", id="story_bady_info")]
