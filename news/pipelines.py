@@ -38,7 +38,8 @@ class NewsHtmlcontentPipeline(object):
                 continue
             name = child.name
             if name == "iframe":
-                raise DropItem(u"存在iframe标签暂时未解析抛弃!")
+                child.attrs = {"src": attrs["src"], "frameborder": "0", "allowfullscreen": "allowfullscreen"}
+                # raise DropItem(u"存在iframe标签暂时未解析抛弃!")
             elif name == "img":
                 img_callback = getattr(spider, "img_callback", None)
                 if img_callback is not None:

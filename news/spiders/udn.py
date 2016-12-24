@@ -55,7 +55,8 @@ class UdnSpider(scrapy.Spider):
     name = "udn"
     allowed_domains = ["udn.com"]
     # start_urls = (
-    #     "http://udn.com/news/story/9/2189655",
+    #     # "http://udn.com/news/story/9/2189655",
+    #     "http://udn.com/news/story/7316/2189647",
     # )
 
     def parse(self, response):
