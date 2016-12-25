@@ -7,12 +7,13 @@ from news.database import Database
 
 
 class EttodaySpider(scrapy.Spider):
+    USE_PROXY = True
     name = "ettoday"
     allowed_domains = ["www.ettoday.net"]
-    start_urls = (
-        # 'http://www.ettoday.net/',
-        'http://www.ettoday.net/news/20161210/827108.htm',
-    )
+    # start_urls = (
+    #     # 'http://www.ettoday.net/',
+    #     'http://www.ettoday.net/news/20161210/827108.htm',
+    # )
 
     def parse(self, response):
         href = response.url
@@ -21,11 +22,56 @@ class EttodaySpider(scrapy.Spider):
         r = re.findall(u'(\d+)年(\d+)月(\d+)日 (\d+):(\d+)', pubtime)
         if not r:
             raise Exception(u'解析时间失败')
+        r = [ int(x) for x in r[0] ]
+        pubtime = datetime.datetime(year=r[0], month=r[1], day=r[2], hour=r[3], minute=r[4])
         htmlcontent = response.xpath('//div[@class="story"]').extract()[0]
         keywords = response.xpath('//div[@id="news-keywords"]/section/a/strong/text()').extract()
         source = u'Ettoday東森新聞雲'
-        item = NewsItem(title=title, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
+        item = NewsItem(title=title, pubtime=pubtime, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
         yield item
+
+
+class EttodayListSpider(scrapy.Spider):
+    USE_PROXY = True
+    name = "ettoday_list"
+    allowed_domains = ["ettoday.net"]
+    # start_urls = (
+    # )
+
+    def __init__(self):
+        categorys = [
+            "1",    # 政治
+            "17",   # 财经
+            "13",   # 论坛
+            "2",    # 国际
+            "3",    # 大陆
+            "6",    # 社会
+            "7",    # 地方
+            "4",    # 新奇
+            "5",    # 生活
+            "8",    # 宠物动物
+            "12",   # 消费
+            "15",   # 名家
+            "23",   # 公益
+            "22",   # 男女
+            "20",   # 3C
+            "26",   # 网搜
+            "32",   # 亲子
+        ]
+        d = datetime.date.today()
+        start_urls = []
+        for c in categorys:
+            url = "http://www.ettoday.net/news/news-list-{}-{}-{}-{}.htm".format(d.year, d.month, d.day, c)
+            start_urls.append(url)
+        self.start_urls = start_urls
+
+    def parse(self, response):
+        hrefs = response.xpath('//a/@href').extract()
+        ettoday = EttodaySpider()
+        r = re.compile("^http://www\.ettoday\.net/news/\d+/\d+\.htm$")
+        for href in hrefs:
+            if r.match(href) and not Database.find_dup(href):
+                yield scrapy.Request(href, callback=ettoday.parse)
 
 
 class EttodayMoivesSpider(scrapy.Spider):
