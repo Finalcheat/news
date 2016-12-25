@@ -30,7 +30,7 @@ class EttodaySpider(scrapy.Spider):
 
 class EttodayMoivesSpider(scrapy.Spider):
     USE_PROXY = True
-    name = "ettoday_moives"
+    name = "ettoday_movies"
     allowed_domains = ["movies.ettoday.net"]
     # start_urls = (
     #     # "http://movies.ettoday.net/news/836200",
@@ -56,7 +56,7 @@ class EttodayMoivesSpider(scrapy.Spider):
 
 class EttodayMoivesListSpider(scrapy.Spider):
     USE_PROXY = True
-    name = "ettoday_moives_list"
+    name = "ettoday_movies_list"
     allowed_domains = ["movies.ettoday.net"]
     start_urls = (
         "http://movies.ettoday.net/news_list/384/1",             # 新闻
