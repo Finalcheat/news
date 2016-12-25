@@ -124,11 +124,12 @@ class EttodayTravelListSpider(scrapy.Spider):
 
 
 class EttodaySportsSpider(scrapy.Spider):
+    USE_PROXY = True
     name = "ettoday_sports"
     allowed_domains = ["sports.ettoday.net"]
-    start_urls = (
-        'http://sports.ettoday.net/news/829873',
-    )
+    # start_urls = (
+    #     'http://sports.ettoday.net/news/829873',
+    # )
 
     def parse(self, response):
         href = response.url
@@ -138,8 +139,30 @@ class EttodaySportsSpider(scrapy.Spider):
         r = re.findall(r, pubtime)
         if not r:
             raise Exception(u'解析时间失败')
+        r = [ int(x) for x in r[0] ]
+        pubtime = datetime.datetime(year=r[0], month=r[1], day=r[2], hour=r[3], minute=r[4], second=r[5])
         htmlcontent = response.xpath('//div[@class="story"]').extract()[0]
         keywords = []
         source = u'ET運動雲'
-        item = NewsItem(title=title, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
+        item = NewsItem(title=title, pubtime=pubtime, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
         yield item
+
+
+class EttodaySportsListSpider(scrapy.Spider):
+    USE_PROXY = True
+    name = "ettoday_sports_list"
+    allowed_domains = ["sports.ettoday.net"]
+    start_urls = (
+        "http://sports.ettoday.net/news-list/%E6%96%B0%E8%81%9E/%E6%9C%80%E6%96%B0%E6%96%B0%E8%81%9E",      # 最新新闻
+        "http://sports.ettoday.net/news-list/%E6%96%B0%E8%81%9E%E5%BF%AB%E8%A8%8A/%E6%9C%80%E6%96%B0%E6%96%B0%E8%81%9E/2",
+    )
+
+    def parse(self, response):
+        hrefs = response.xpath('//a/@href').extract()
+        ettoday_sports = EttodaySportsSpider()
+        r = re.compile("^/news/\d+$")
+        for _href in hrefs:
+            if r.match(_href):
+                href = "http://sports.ettoday.net" + _href
+                if not Database.find_dup(href):
+                    yield scrapy.Request(href, callback=ettoday_sports.parse)
