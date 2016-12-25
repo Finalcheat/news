@@ -38,7 +38,8 @@ class EttodayListSpider(scrapy.Spider):
     # start_urls = (
     # )
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(EttodayListSpider, self).__init__(*args, **kwargs)
         categorys = [
             "1",    # 政治
             "17",   # 财经
