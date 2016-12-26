@@ -14,10 +14,17 @@ class Bomb01Spider(scrapy.Spider):
     #     "http://www.bomb01.com/article/34896",
     # )
 
+    def img_callback(self, pipeline, attrs):
+        src = attrs.get("src") or ""
+        alt = attrs.get("alt", "")
+        if src and not src.startswith("http"):
+            src = "http://www.bomb01.com" + src
+        return {"src": src, "alt": alt}
+
     def parse(self, response):
         href = response.url
         title = response.xpath('//div[@id="article"]/div/h1[@class="title"]/text()').extract()[0]
-        pubtime = response.xpath('//div[@class="time"]/text()').extract()[0]
+        pubtime = response.xpath('//div[contains(@class, "time")]').extract()[0]
         r = re.compile("(\d+)-(\d+)-(\d+)")
         r = re.findall(r, pubtime)
         if not r:
@@ -42,6 +49,13 @@ class Bomb01ListSpider(scrapy.Spider):
         "https://www.bomb01.com/new/page/4/",
         "https://www.bomb01.com/new/page/5/",
     )
+
+    def img_callback(self, pipeline, attrs):
+        src = attrs.get("src") or ""
+        alt = attrs.get("alt", "")
+        if src and not src.startswith("http"):
+            src = "http://www.bomb01.com" + src
+        return {"src": src, "alt": alt}
 
     def parse(self, response):
         hrefs = response.xpath('//a/@href').extract()
