@@ -10,9 +10,9 @@ class KKdaySpider(scrapy.Spider):
     USE_PROXY = True
     name = "kkday"
     allowed_domains = ["blog.kkday.com"]
-    start_urls = (
-        "http://blog.kkday.com/2016/12/10-london-must-eat.html",
-    )
+    # start_urls = (
+    #     "http://blog.kkday.com/2016/12/10-london-must-eat.html",
+    # )
 
     def parse(self, response):
         href = response.url
