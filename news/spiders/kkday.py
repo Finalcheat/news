@@ -10,9 +10,9 @@ class KKdaySpider(scrapy.Spider):
     USE_PROXY = True
     name = "kkday"
     allowed_domains = ["blog.kkday.com"]
-    # start_urls = (
-    #     "http://blog.kkday.com/2016/12/10-london-must-eat.html",
-    # )
+    start_urls = (
+        "http://blog.kkday.com/2016/12/10-london-must-eat.html",
+    )
 
     def parse(self, response):
         href = response.url
@@ -26,7 +26,7 @@ class KKdaySpider(scrapy.Spider):
         r = [ int(x) for x in r[0] ]
         pubtime = datetime.datetime(year=r[0], month=r[1], day=r[2])
         htmlcontent = response.xpath('//div[contains(@class, "post-body")]').extract()[0]
-        keywords = response.xpath('//span[@class="post-labels"]/a[rel="tag"]/text()').extract()
+        keywords = response.xpath('//span[@class="post-labels"]/a[@rel="tag"]/text()').extract()
         source = u"KKday"
         item = NewsItem(title=title, pubtime=pubtime, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
         yield item
