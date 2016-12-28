@@ -16,8 +16,9 @@ class KKdaySpider(scrapy.Spider):
 
     def parse(self, response):
         href = response.url
-        title = response.xpath('//div[@class="post-header"]/div[@contains(@class, "post-title")]/text()').extract()[0]
-        pubtime = response.xpath('//attr[@class="date-header"]/span/text()').extract()[0]
+        title = response.xpath('//h3[contains(@class, "post-title")]/text()').extract()[0]
+        title = title.replace("\n", "")
+        pubtime = response.xpath('//abbr[@class="date-header"]/span/text()').extract()[0]
         r = re.compile(u"(\d+)年(\d+)月(\d+)日")
         r = re.findall(r, pubtime)
         if not r:
