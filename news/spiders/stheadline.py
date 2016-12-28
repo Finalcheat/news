@@ -2,6 +2,7 @@
 import scrapy
 import re
 import datetime
+from bs4 import BeautifulSoup
 from news.items import NewsItem
 from news.database import Database
 
@@ -11,7 +12,7 @@ class StheadlineSpider(scrapy.Spider):
     name = "stheadline"
     allowed_domains = ["std.stheadline.com"]
     # start_urls = (
-    #     "http://std.stheadline.com/instant/articles/detail/304994-%E9%A6%99%E6%B8%AF-%E8%AD%A6%E6%96%B9%E7%A0%B4%E7%89%9B%E9%A0%AD%E8%A7%92%E6%AD%A6%E5%99%A8%E5%BA%AB%E6%AF%92%E7%AA%9F+%E6%8B%98%E7%84%A1%E6%A5%AD%E6%BC%A2%E6%AA%A2%E5%88%A9%E5%88%80",
+    #     "http://std.stheadline.com/daily/news-content.php?id=1526475&target=2",
     # )
 
     def img_callback(self, pipeline, attrs):
@@ -37,6 +38,14 @@ class StheadlineSpider(scrapy.Spider):
         else:
             pubtime = datetime.datetime(year=r[0], month=r[1], day=r[2])
         htmlcontent = response.xpath('//div[@class="post-content"]').extract()[0]
+
+        soup = BeautifulSoup(htmlcontent, "lxml")
+        for r in soup.find_all("a", class_="image"):
+            r.name = "img"
+            r["src"] = r["href"]
+            r["alt"] = r["title"]
+        htmlcontent = unicode(soup.body.contents[0])
+
         keywords = []
         source = u"星島日報"
         item = NewsItem(title=title, pubtime=pubtime, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
