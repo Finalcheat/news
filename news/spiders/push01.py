@@ -23,7 +23,7 @@ class Push01Spider(scrapy.Spider):
 
     def parse(self, response):
         href = response.url
-        title = response.xpath('//div[contains(@class, "content")]/h1[@itemprop="headline"]/text()').extract()
+        title = response.xpath('//div[contains(@class, "content")]/h1[@itemprop="headline"]/a/text()').extract()[0]
         pubtime = response.xpath('//div[contains(@class, "description")]/p[@class="date"]').extract()[0]
         r = re.compile("(\d+)-(\d+)-(\d+)")
         r = re.findall(r, pubtime)
