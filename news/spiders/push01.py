@@ -46,6 +46,13 @@ class Push01ListSpider(scrapy.Spider):
         "http://www.push01.net",
     )
 
+    def img_callback(self, pipeline, attrs):
+        src = attrs.get("src") or ""
+        alt = attrs.get("alt", "")
+        if src and not src.startswith("http"):
+            src = "http://www.push01.net" + src
+        return {"src": src, "alt": alt}
+
     def parse(self, response):
         hrefs = response.xpath('//a/@href').extract()
         push01 = Push01Spider()
