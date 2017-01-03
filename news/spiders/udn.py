@@ -182,3 +182,67 @@ class UdnHealthListSpider(scrapy.Spider):
                 href = "http://health.udn.com" + _href
                 if not Database.find_dup(href):
                     yield scrapy.Request(href, udn_health.parse)
+
+
+class UdnMoneySpider(scrapy.Spider):
+    USE_PROXY = True
+    name = "udn_money"
+    allowed_domains = ["money.udn.com"]
+    # start_urls = (
+    #     "http://money.udn.com/money/story/7307/2206942",
+    # )
+
+    def parse(self, response):
+        href = response.url
+        title = response.xpath('//div[@id="story_body_content"]/*[@id="story_art_title"]/text()').extract()[0]
+        pubtime = response.xpath('//div[@id="story_bady_info"]/h3').extract()[0]
+        r = re.compile("(\d+)-(\d+)-(\d+) (\d+):(\d+):(\d+)")
+        r = re.findall(r, pubtime)
+        if not r:
+            raise Exception(u"解析时间失败")
+        r = [ int(x) for x in r[0] ]
+        pubtime = datetime.datetime(year=r[0], month=r[1], day=r[2], hour=r[3], minute=r[4], second=r[5])
+        htmlcontent = response.xpath('//div[@id="story_body_content"]').extract()[0]
+
+        soup = BeautifulSoup(htmlcontent, "lxml")
+        [h.extract() for h in soup.select('#story_art_title')]
+        [d.extract() for d in soup.select('#story_bady_info')]
+        [d.extract() for d in soup.select('div#_popIn_recommend')]
+        [d.extract() for d in soup.select('div.photo_pop')]
+        [a.extract() for a in soup.select('a.photo_pop_icon')]
+        htmlcontent = unicode(soup.body.contents[0])
+
+        keywords = []
+        source = u"聯合財經網"
+        item = NewsItem(title=title, pubtime=pubtime, htmlcontent=htmlcontent, href=href, keywords=keywords, source=source)
+        yield item
+
+
+class UdnMoneyListSpider(scrapy.Spider):
+    USE_PROXY = True
+    name = "udn_money_list"
+    allowed_domains = ["money.udn.com"]
+    start_urls = (
+        'http://money.udn.com/money/index',                # 首页
+        'http://money.udn.com/money/breaknews/1001',       # 即时
+        'http://money.udn.com/money/cate/5587',            # 热点
+        'http://money.udn.com/money/cate/5588',            # 国际
+        'http://money.udn.com/money/cate/5589',            # 两岸
+        'http://money.udn.com/money/cate/5590',            # 证券
+        'http://money.udn.com/money/cate/5591',            # 产业
+        'http://money.udn.com/money/cate/5592',            # 理财
+        'http://money.udn.com/money/cate/5593',            # 房产
+        'http://money.udn.com/money/cate/5595',            # 观点
+        'http://money.udn.com/money/cate/5596',            # 品味
+        'http://money.udn.com/money/cate/5597',            # 商情
+    )
+
+    def parse(self, response):
+        hrefs = response.xpath('//a/@href').extract()
+        udn_money = UdnMoneySpider()
+        r = re.compile("^/money/story/\d+/\d+$")
+        for _href in hrefs:
+            if r.match(_href):
+                href = "http://money.udn.com" + _href
+                if not Database.find_dup(href):
+                    yield scrapy.Request(href, callback=udn_money.parse)
