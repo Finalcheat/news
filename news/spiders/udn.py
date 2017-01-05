@@ -18,7 +18,7 @@ class UdnStyleSpider(scrapy.Spider):
     def parse(self, response):
         href = response.url
         title = response.xpath('//h1[@class="story_art_title"]/font/text()').extract()[0]
-        pubtime = response.xpath('//dl[@id="story-top"]/dd/text()').extract()[0]
+        pubtime = response.xpath('//div[@class="story_bady_info_author"]').extract()[0]
         r = re.findall(u'(\d+)-(\d+)-(\d+)', pubtime)
         if not r:
             raise Exception(u'解析时间失败')
